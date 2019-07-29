@@ -4,7 +4,7 @@ import json
 import datetime
 import numpy as np
 import skimage.draw
-
+from matplotlib import pyplot as plt
 # Root directory of the project
 ROOT_DIR = os.path.abspath("../../")
 
@@ -12,7 +12,7 @@ ROOT_DIR = os.path.abspath("../../")
 sys.path.append(ROOT_DIR)  # To find local version of the library
 from mrcnn.config import Config
 from mrcnn import model as modellib, utils
-
+from mrcnn import visualize
 # Path to trained weights file
 COCO_WEIGHTS_PATH = os.path.join(ROOT_DIR, "mask_rcnn_coco.h5")
 
@@ -30,7 +30,7 @@ class WhiteboardConfig(Config):
     Derives from the base Config class and overrides some values.
     """
     # Give the configuration a recognizable name
-    NAME = "Whiteboard"
+    NAME = "whiteboard"
 
     # We use a GPU with 12GB memory, which can fit two images.
     # Adjust down if you use a smaller GPU.
@@ -54,7 +54,7 @@ class WhiteboardConfig(Config):
 class WhiteboardDataset(utils.Dataset):
 
     def load_whiteboard(self, dataset_dir, subset):
-        """Load a subset of the Balloon dataset.
+        """Load a subset of the Whiteboard dataset.
         dataset_dir: Root directory of the dataset.
         subset: Subset to load: train or val
         """
@@ -120,7 +120,7 @@ class WhiteboardDataset(utils.Dataset):
             one mask per instance.
         class_ids: a 1D array of class IDs of the instance masks.
         """
-        # If not a balloon dataset image, delegate to parent class.
+        # If not a whiteboard dataset image, delegate to parent class.
         image_info = self.image_info[image_id]
         if image_info["source"] != "whiteboard":
             return super(self.__class__, self).load_mask(image_id)
@@ -144,7 +144,7 @@ class WhiteboardDataset(utils.Dataset):
         Return:
              the path of the image."""
         info = self.image_info[image_id]
-        if info["source"] == "balloon":
+        if info["source"] == "whiteboard":
             return info["path"]
         else:
             super(self.__class__, self).image_reference(image_id)
@@ -153,13 +153,13 @@ class WhiteboardDataset(utils.Dataset):
 def train(model):
     """Train the model."""
     # Training dataset.
-    dataset_train = BalloonDataset()
-    dataset_train.load_balloon(args.dataset, "train")
+    dataset_train = WhiteboardDataset()
+    dataset_train.load_whiteboard(args.dataset, "train")
     dataset_train.prepare()
 
     # Validation dataset
-    dataset_val = BalloonDataset()
-    dataset_val.load_balloon(args.dataset, "val")
+    dataset_val = WhiteboardDataset()
+    dataset_val.load_whiteboard(args.dataset, "val")
     dataset_val.prepare()
 
     # *** This training schedule is an example. Update to your needs ***
@@ -253,13 +253,13 @@ if __name__ == '__main__':
 
     # Parse command line arguments
     parser = argparse.ArgumentParser(
-        description='Train Mask R-CNN to detect balloons.')
+        description='Train Mask R-CNN to detect whiteboards.')
     parser.add_argument("command",
                         metavar="<command>",
                         help="'train' or 'splash'")
     parser.add_argument('--dataset', required=False,
-                        metavar="/path/to/balloon/dataset/",
-                        help='Directory of the Balloon dataset')
+                        metavar="/path/to/whiteboard/dataset/",
+                        help='Directory of the Whiteboard dataset')
     parser.add_argument('--weights', required=True,
                         metavar="/path/to/weights.h5",
                         help="Path to weights .h5 file or 'coco'")
@@ -288,9 +288,9 @@ if __name__ == '__main__':
 
     # Configurations
     if args.command == "train":
-        config = BalloonConfig()
+        config = WhiteboardConfig()
     else:
-        class InferenceConfig(BalloonConfig):
+        class InferenceConfig(WhiteboardConfig):
             # Set batch size to 1 since we'll be running inference on
             # one image at a time. Batch size = GPU_COUNT * IMAGES_PER_GPU
             GPU_COUNT = 1
